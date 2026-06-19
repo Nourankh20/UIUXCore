@@ -95,8 +95,29 @@ public class TutorialManager : MonoBehaviour
         _currentTaskIndex = index;
         _stepStartTime = Time.time;
         _stepErrors = 0;
-        if (instructionUI != null) instructionUI.ShowStep(tasks[index].instructionText);
-        TelemetryManager.Instance?.LogEvent("tutorial_step_begin", new { room = _roomIndex, task = tasks[index].taskName });
+
+        // Check the active profile state
+        bool isOptimized = SessionManager.Instance?.activeProfile?.isOptimized ?? false;
+
+        if (instructionUI != null)
+        {
+            if (isOptimized)
+            {
+                // Optimized mode: Show one step at a time
+                instructionUI.ShowStep(tasks[index].instructionText);
+            }
+            else
+            {
+                // Baseline mode: Show the full mission board
+                instructionUI.ShowAllSteps(tasks, index);
+            }
+        }
+
+        TelemetryManager.Instance?.LogEvent("tutorial_step_begin", new
+        {
+            room = _roomIndex,
+            task = tasks[index].taskName
+        });
     }
 
     private void CompleteTaskLogging()
