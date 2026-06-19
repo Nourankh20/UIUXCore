@@ -1,0 +1,3 @@
+SessionID,ProfileName,IsOptimized,Timestamp,EventType,Payload
+19,Baseline,False,0,ui_mode_change,"{""mode"": ""Static_HUD""}"
+19,Baseline,False,0,ui_mode_change,"{""mode"": ""Static_HUD""}"

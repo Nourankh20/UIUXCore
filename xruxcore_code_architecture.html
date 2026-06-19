@@ -1,0 +1,1243 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{display:flex;min-height:600px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.sidebar{width:220px;flex-shrink:0;border-right:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);overflow-y:auto}
+.sidebar h3{font-size:11px;font-weight:500;color:var(--color-text-tertiary);padding:14px 14px 6px;text-transform:uppercase;letter-spacing:.06em}
+.nav-item{display:block;padding:7px 14px;font-size:13px;color:var(--color-text-secondary);cursor:pointer;border-left:2px solid transparent;line-height:1.4}
+.nav-item:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.nav-item.active{background:var(--color-background-primary);color:var(--color-text-primary);border-left-color:var(--color-border-info)}
+.nav-group{margin-bottom:4px}
+.main{flex:1;overflow-y:auto;padding:20px 24px}
+.main h2{font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.main .sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:16px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.tag.blue{background:var(--color-background-info);color:var(--color-text-info)}
+.tag.green{background:var(--color-background-success);color:var(--color-text-success)}
+.tag.amber{background:var(--color-background-warning);color:var(--color-text-warning)}
+.tag.red{background:var(--color-background-danger);color:var(--color-text-danger)}
+.section{margin-bottom:20px}
+.section-title{font-size:12px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+pre{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px;font-family:var(--font-mono);font-size:12px;line-height:1.6;overflow-x:auto;color:var(--color-text-primary)}
+.kw{color:var(--color-text-info);font-weight:500}
+.cm{color:var(--color-text-tertiary);font-style:italic}
+.ty{color:var(--color-text-success)}
+.str{color:var(--color-text-warning)}
+.unity-block{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px;margin-bottom:10px}
+.unity-block .label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.unity-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px}
+.unity-row:last-child{border-bottom:none}
+.unity-key{color:var(--color-text-secondary)}
+.unity-val{color:var(--color-text-primary);font-family:var(--font-mono);font-size:12px}
+.pill{display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;background:var(--color-background-success);color:var(--color-text-success)}
+.pill.off{background:var(--color-background-danger);color:var(--color-text-danger)}
+.event-table{width:100%;font-size:12px;border-collapse:collapse}
+.event-table th{text-align:left;padding:6px 8px;background:var(--color-background-secondary);color:var(--color-text-secondary);font-weight:500;font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.event-table td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);font-family:var(--font-mono);color:var(--color-text-primary)}
+.event-table tr:last-child td{border-bottom:none}
+.panel{display:none}
+.panel.active{display:block}
+.breadcrumb{font-size:12px;color:var(--color-text-tertiary);margin-bottom:12px}
+.breadcrumb span{color:var(--color-text-secondary)}
+</style>
+
+<div class="wrap">
+<div class="sidebar">
+  <h3>Core</h3>
+  <div class="nav-group">
+    <div class="nav-item active" onclick="show('overview')">Project overview</div>
+    <div class="nav-item" onclick="show('uxprofile')">UXProfileSO</div>
+    <div class="nav-item" onclick="show('session')">SessionManager</div>
+    <div class="nav-item" onclick="show('telemetry')">TelemetryManager</div>
+    <div class="nav-item" onclick="show('rigconfig')">XRRigConfigurator</div>
+    <div class="nav-item" onclick="show('snap')">SnapInteractor</div>
+    <div class="nav-item" onclick="show('feedback')">FeedbackManager</div>
+  </div>
+  <h3>Room 1 – Tutorial</h3>
+  <div class="nav-group">
+    <div class="nav-item" onclick="show('r1manager')">TutorialManager</div>
+    <div class="nav-item" onclick="show('r1shovel')">ShovelInteractable</div>
+    <div class="nav-item" onclick="show('r1door')">TombDoorOpener</div>
+  </div>
+  <h3>Room 2 – Low Cog.</h3>
+  <div class="nav-group">
+    <div class="nav-item" onclick="show('r2manager')">HieroglyphPuzzle</div>
+    <div class="nav-item" onclick="show('r2tile')">HieroglyphTile</div>
+    <div class="nav-item" onclick="show('r2bridge')">PlankBridgeManager</div>
+    <div class="nav-item" onclick="show('r2plank')">PlankInteractable</div>
+  </div>
+  <h3>Room 3 – High Cog.</h3>
+  <div class="nav-group">
+    <div class="nav-item" onclick="show('r3manager')">TreasureAssembly</div>
+    <div class="nav-item" onclick="show('r3treasure')">TreasureObject</div>
+    <div class="nav-item" onclick="show('r3snap')">AssemblySnapZone</div>
+  </div>
+  <h3>UI</h3>
+  <div class="nav-group">
+    <div class="nav-item" onclick="show('wrist')">WristUIController</div>
+    <div class="nav-item" onclick="show('hud')">FixedHUDController</div>
+  </div>
+  <h3>Data</h3>
+  <div class="nav-group">
+    <div class="nav-item" onclick="show('events')">Event schema</div>
+    <div class="nav-item" onclick="show('highfreq')">HighFreq schema</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- OVERVIEW -->
+<div id="panel-overview" class="panel active">
+<div class="breadcrumb">XRUXCore / <span>Project overview</span></div>
+<h2>Project file structure</h2>
+<div class="sub">Egyptian Tomb — 3 rooms, 2 UX profiles, modular Manager-Worker pattern</div>
+<pre><span class="cm">Assets/
+└── XRUXCore/
+    ├── Core/
+    │   ├── UXProfileSO.cs            ← ScriptableObject (Baseline / Optimized)
+    │   ├── SessionManager.cs         ← Singleton, session_id, phase tracking
+    │   ├── TelemetryManager.cs       ← Singleton, MongoDB API calls
+    │   ├── XRRigConfigurator.cs      ← Applies profile to XR Rig at runtime
+    │   ├── FeedbackManager.cs        ← Haptics / audio / visual glow
+    │   └── SceneTransitionManager.cs ← Room transitions via UnityEvents
+    │
+    ├── Interaction/
+    │   └── SnapInteractor.cs         ← Core grab/release + snap logic
+    │
+    ├── Rooms/
+    │   ├── Room1_Tutorial/
+    │   │   ├── TutorialManager.cs
+    │   │   ├── ShovelInteractable.cs
+    │   │   └── TombDoorOpener.cs
+    │   ├── Room2_LowCog/
+    │   │   ├── HieroglyphPuzzleManager.cs
+    │   │   ├── HieroglyphTile.cs
+    │   │   ├── PlankBridgeManager.cs
+    │   │   └── PlankInteractable.cs
+    │   └── Room3_HighCog/
+    │       ├── TreasureAssemblyManager.cs
+    │       ├── TreasureObject.cs
+    │       └── AssemblySnapZone.cs
+    │
+    ├── UI/
+    │   ├── WristUIController.cs      ← Optimized: diegetic wrist UI
+    │   ├── FixedHUDController.cs     ← Baseline: world-space fixed HUD
+    │   └── TaskInstructionUI.cs      ← Shared text display
+    │
+    └── Profiles/                     ← ScriptableObject assets
+        ├── Baseline_UX_Profile.asset
+        └── Optimized_UX_Profile.asset</span></pre>
+
+<div class="section">
+<div class="section-title">Unity scene hierarchy (each room)</div>
+<pre><span class="cm">Scene Root
+├── [XRUXCore]               ← Singleton managers (DontDestroyOnLoad)
+│   ├── SessionManager
+│   ├── TelemetryManager
+│   └── SceneTransitionManager
+│
+├── [XR Rig]
+│   ├── XRRigConfigurator    ← Reads UXProfileSO, toggles components
+│   ├── Camera Offset
+│   │   ├── Main Camera
+│   │   ├── LeftHand Controller / HandTracking
+│   │   └── RightHand Controller / HandTracking
+│   └── WristUIController    ← Enabled/disabled by profile
+│
+├── [Environment]            ← Egyptian tomb geometry, lights
+│
+├── [Interactables]          ← All grabbable objects with SnapInteractor
+│
+├── [SnapZones]              ← Target positions for objects
+│
+└── [UI]
+    ├── FixedHUD (WorldSpace canvas)   ← Baseline only
+    └── WristUI (on hand bone)         ← Optimized only</span></pre>
+</div>
+</div>
+
+<!-- UXPROFILE -->
+<div id="panel-uxprofile" class="panel">
+<div class="breadcrumb">Core / <span>UXProfileSO.cs</span></div>
+<h2>UXProfileSO</h2>
+<div class="sub">ScriptableObject — one asset per condition. Controls every UX variable.</div>
+<div class="tags"><span class="tag blue">ScriptableObject</span><span class="tag green">No MonoBehaviour</span></div>
+<pre><span class="kw">using</span> UnityEngine;
+
+[<span class="ty">CreateAssetMenu</span>(fileName = <span class="str">"UX_Profile"</span>, menuName = <span class="str">"XRUXCore/UX Profile"</span>)]
+<span class="kw">public class</span> <span class="ty">UXProfileSO</span> : <span class="ty">ScriptableObject</span>
+{
+    <span class="cm">// ── General ─────────────────────────────────────</span>
+    <span class="kw">public string</span> profileName;       <span class="cm">// "Baseline" | "Optimized"</span>
+    <span class="kw">public bool</span>   isOptimized;       <span class="cm">// Used for quick bool checks</span>
+
+    <span class="cm">// ── Interaction & Snapping ───────────────────────</span>
+    <span class="kw">public bool</span>  snappingEnabled;
+    <span class="kw">public float</span> snapDistanceThreshold; <span class="cm">// 0.15 m</span>
+    <span class="kw">public float</span> snapAngleThreshold;    <span class="cm">// 45 degrees</span>
+
+    <span class="cm">// ── Locomotion ──────────────────────────────────</span>
+    <span class="kw">public bool</span> hybridLocomotion;    <span class="cm">// Optimized: true</span>
+    <span class="kw">public bool</span> teleportOnly;        <span class="cm">// Baseline: true</span>
+
+    <span class="cm">// ── Feedback & Comfort ──────────────────────────</span>
+    <span class="kw">public bool</span>  useHaptics;
+    <span class="kw">public bool</span>  useAudioFeedback;
+    <span class="kw">public bool</span>  useVisualGlow;
+    <span class="kw">public float</span> feedbackIntensity;  <span class="cm">// 0.3 baseline / 1.0 optimized</span>
+    <span class="kw">public bool</span>  enableComfortVignette;
+
+    <span class="cm">// ── UI Style ────────────────────────────────────</span>
+    <span class="kw">public bool</span> useDiegeticWristUI;  <span class="cm">// Optimized</span>
+    <span class="kw">public bool</span> useFixedHUD;         <span class="cm">// Baseline</span>
+
+    <span class="cm">// ── Input Method ────────────────────────────────</span>
+    <span class="kw">public bool</span> useHandTracking;     <span class="cm">// Optimized</span>
+    <span class="kw">public bool</span> useController;       <span class="cm">// Baseline</span>
+}</pre>
+
+<div class="section">
+<div class="section-title">Inspector settings — Baseline asset</div>
+<div class="unity-block">
+<div class="label">Baseline_UX_Profile.asset</div>
+<div class="unity-row"><span class="unity-key">Profile Name</span><span class="unity-val">Baseline</span></div>
+<div class="unity-row"><span class="unity-key">Is Optimized</span><span class="pill off">false</span></div>
+<div class="unity-row"><span class="unity-key">Snapping Enabled</span><span class="pill off">false</span></div>
+<div class="unity-row"><span class="unity-key">Snap Distance Threshold</span><span class="unity-val">0.15</span></div>
+<div class="unity-row"><span class="unity-key">Snap Angle Threshold</span><span class="unity-val">45</span></div>
+<div class="unity-row"><span class="unity-key">Teleport Only</span><span class="pill">true</span></div>
+<div class="unity-row"><span class="unity-key">Feedback Intensity</span><span class="unity-val">0.3</span></div>
+<div class="unity-row"><span class="unity-key">Use Fixed HUD</span><span class="pill">true</span></div>
+<div class="unity-row"><span class="unity-key">Use Controller</span><span class="pill">true</span></div>
+<div class="unity-row"><span class="unity-key">Use Hand Tracking</span><span class="pill off">false</span></div>
+</div>
+<div class="unity-block">
+<div class="label">Optimized_UX_Profile.asset</div>
+<div class="unity-row"><span class="unity-key">Profile Name</span><span class="unity-val">Optimized</span></div>
+<div class="unity-row"><span class="unity-key">Is Optimized</span><span class="pill">true</span></div>
+<div class="unity-row"><span class="unity-key">Snapping Enabled</span><span class="pill">true</span></div>
+<div class="unity-row"><span class="unity-key">Snap Distance Threshold</span><span class="unity-val">0.15</span></div>
+<div class="unity-row"><span class="unity-key">Snap Angle Threshold</span><span class="unity-val">45</span></div>
+<div class="unity-row"><span class="unity-key">Hybrid Locomotion</span><span class="pill">true</span></div>
+<div class="unity-row"><span class="unity-key">Feedback Intensity</span><span class="unity-val">1.0</span></div>
+<div class="unity-row"><span class="unity-key">Use Diegetic Wrist UI</span><span class="pill">true</span></div>
+<div class="unity-row"><span class="unity-key">Use Hand Tracking</span><span class="pill">true</span></div>
+<div class="unity-row"><span class="unity-key">Enable Comfort Vignette</span><span class="pill">true</span></div>
+</div>
+</div>
+</div>
+
+<!-- SESSION -->
+<div id="panel-session" class="panel">
+<div class="breadcrumb">Core / <span>SessionManager.cs</span></div>
+<h2>SessionManager</h2>
+<div class="sub">Singleton. Generates session_id, tracks phase, carries profile across scenes.</div>
+<div class="tags"><span class="tag blue">Singleton</span><span class="tag green">DontDestroyOnLoad</span></div>
+<pre><span class="kw">public class</span> <span class="ty">SessionManager</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public static</span> <span class="ty">SessionManager</span> Instance;
+
+    <span class="cm">// ── Fields ──────────────────────────────────────</span>
+    [<span class="ty">HideInInspector</span>] <span class="kw">public string</span>      sessionId;
+    [<span class="ty">HideInInspector</span>] <span class="kw">public int</span>         participantId;
+    [<span class="ty">HideInInspector</span>] <span class="kw">public string</span>      currentPhase;  <span class="cm">// tutorial|sorting|procedural</span>
+    [<span class="ty">HideInInspector</span>] <span class="kw">public float</span>       sessionStartTime;
+    [<span class="ty">HideInInspector</span>] <span class="kw">public float</span>       phaseStartTime;
+
+    <span class="kw">public</span> <span class="ty">UXProfileSO</span> activeProfile; <span class="cm">// set before Play in Inspector</span>
+
+    <span class="cm">// ── Unity lifecycle ──────────────────────────────</span>
+    <span class="kw">void</span> Awake()
+    {
+        <span class="kw">if</span> (Instance != <span class="kw">null</span>) { Destroy(gameObject); <span class="kw">return</span>; }
+        Instance = <span class="kw">this</span>;
+        DontDestroyOnLoad(gameObject);
+        sessionId = System.Guid.NewGuid().ToString();
+        sessionStartTime = Time.time;
+    }
+
+    <span class="kw">void</span> Start() => LogSessionStart();
+
+    <span class="cm">// ── Public API ───────────────────────────────────</span>
+    <span class="kw">public void</span> TransitionToPhase(<span class="kw">string</span> phase)
+    {
+        currentPhase = phase;
+        phaseStartTime = Time.time;
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"phase_transition"</span>,
+            <span class="kw">new</span> { phase, timestamp = Time.time });
+    }
+
+    <span class="kw">public float</span> GetPhaseDuration() => Time.time - phaseStartTime;
+    <span class="kw">public float</span> GetSessionDuration() => Time.time - sessionStartTime;
+
+    <span class="kw">private void</span> LogSessionStart()
+    {
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"session_start"</span>, <span class="kw">new</span> {
+            participantId,
+            profile = activeProfile.profileName,
+            isOptimized = activeProfile.isOptimized
+        });
+    }
+}</pre>
+<div class="section">
+<div class="section-title">Inspector settings</div>
+<div class="unity-block">
+<div class="unity-row"><span class="unity-key">Active Profile</span><span class="unity-val">Baseline_UX_Profile (asset)</span></div>
+<div class="unity-row"><span class="unity-key">Participant Id</span><span class="unity-val">Set before each session</span></div>
+</div>
+</div>
+</div>
+
+<!-- TELEMETRY -->
+<div id="panel-telemetry" class="panel">
+<div class="breadcrumb">Core / <span>TelemetryManager.cs</span></div>
+<h2>TelemetryManager</h2>
+<div class="sub">Singleton. Routes events to MongoDB via REST. Logs HighFreq at 60 Hz.</div>
+<div class="tags"><span class="tag blue">Singleton</span><span class="tag amber">Coroutine</span></div>
+<pre><span class="kw">public class</span> <span class="ty">TelemetryManager</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public static</span> <span class="ty">TelemetryManager</span> Instance;
+
+    <span class="cm">// ── Config ──────────────────────────────────────</span>
+    [<span class="ty">SerializeField</span>] <span class="kw">string</span> apiBaseUrl;   <span class="cm">// your MongoDB Data API endpoint</span>
+    [<span class="ty">SerializeField</span>] <span class="kw">string</span> apiKey;        <span class="cm">// stored in SO or env</span>
+    [<span class="ty">SerializeField</span>] <span class="kw">float</span>  highFreqHz = 60f;
+
+    <span class="cm">// ── Private state ────────────────────────────────</span>
+    <span class="kw">private float</span> _nextHighFreqTime;
+    <span class="kw">private</span> <span class="ty">Queue</span>&lt;<span class="kw">string</span>&gt; _eventQueue = <span class="kw">new</span>();
+
+    <span class="kw">void</span> Update()
+    {
+        <span class="kw">if</span> (Time.time >= _nextHighFreqTime)
+        {
+            _nextHighFreqTime = Time.time + (1f / highFreqHz);
+            CaptureHighFreqFrame();
+        }
+    }
+
+    <span class="cm">// ── Discrete events ──────────────────────────────</span>
+    <span class="kw">public void</span> LogEvent(<span class="kw">string</span> eventType, <span class="kw">object</span> data)
+    {
+        <span class="kw">var</span> payload = <span class="kw">new</span> {
+            session_id  = <span class="ty">SessionManager</span>.Instance.sessionId,
+            timestamp   = Time.time,
+            phase       = <span class="ty">SessionManager</span>.Instance.currentPhase,
+            event_type  = eventType,
+            data
+        };
+        StartCoroutine(PostToMongo(<span class="str">"Events"</span>, payload));
+    }
+
+    <span class="cm">// ── High-frequency frame ─────────────────────────</span>
+    <span class="kw">private void</span> CaptureHighFreqFrame()
+    {
+        <span class="kw">var</span> cam = Camera.main.transform;
+        <span class="kw">var</span> payload = <span class="kw">new</span> {
+            session_id  = <span class="ty">SessionManager</span>.Instance.sessionId,
+            timestamp   = Time.time,
+            event_type  = <span class="str">"head_tracking"</span>,
+            data = <span class="kw">new</span> {
+                position = cam.position,
+                rotation = cam.rotation.eulerAngles,
+                pitch    = cam.rotation.eulerAngles.x,
+                yaw      = cam.rotation.eulerAngles.y
+            }
+        };
+        StartCoroutine(PostToMongo(<span class="str">"HighFreq_Logs"</span>, payload));
+    }
+
+    <span class="cm">// ── Snap precision events ────────────────────────</span>
+    <span class="kw">public void</span> LogSnapEvent(<span class="kw">bool</span> success, <span class="kw">float</span> distErr,
+                             <span class="kw">float</span> angErr, <span class="kw">string</span> objectId)
+    {
+        LogEvent(success ? <span class="str">"snap_success"</span> : <span class="str">"snap_fail"</span>, <span class="kw">new</span> {
+            objectId, distanceError = distErr, angularError = angErr
+        });
+    }
+
+    <span class="cm">// ── HTTP helper ──────────────────────────────────</span>
+    <span class="kw">private</span> IEnumerator PostToMongo(<span class="kw">string</span> collection, <span class="kw">object</span> body)
+    {
+        <span class="kw">string</span> json = JsonUtility.ToJson(body);
+        <span class="kw">using var</span> req = <span class="kw">new</span> <span class="ty">UnityWebRequest</span>(apiBaseUrl + collection, <span class="str">"POST"</span>);
+        req.uploadHandler   = <span class="kw">new</span> <span class="ty">UploadHandlerRaw</span>(System.Text.Encoding.UTF8.GetBytes(json));
+        req.downloadHandler = <span class="kw">new</span> <span class="ty">DownloadHandlerBuffer</span>();
+        req.SetRequestHeader(<span class="str">"Content-Type"</span>, <span class="str">"application/json"</span>);
+        req.SetRequestHeader(<span class="str">"api-key"</span>, apiKey);
+        <span class="kw">yield return</span> req.SendWebRequest();
+    }
+}</pre>
+</div>
+
+<!-- RIG CONFIG -->
+<div id="panel-rigconfig" class="panel">
+<div class="breadcrumb">Core / <span>XRRigConfigurator.cs</span></div>
+<h2>XRRigConfigurator</h2>
+<div class="sub">Reads UXProfileSO on Start and toggles all XR components accordingly.</div>
+<pre><span class="kw">public class</span> <span class="ty">XRRigConfigurator</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="cm">// ── Inspector refs ──────────────────────────────</span>
+    [<span class="ty">Header</span>(<span class="str">"Profile"</span>)]
+    <span class="kw">public</span> <span class="ty">UXProfileSO</span> profile; <span class="cm">// drag Baseline or Optimized asset here</span>
+
+    [<span class="ty">Header</span>(<span class="str">"Locomotion"</span>)]
+    <span class="kw">public</span> <span class="ty">GameObject</span> teleportProvider;
+    <span class="kw">public</span> <span class="ty">GameObject</span> continuousMoveProvider;
+
+    [<span class="ty">Header</span>(<span class="str">"Input"</span>)]
+    <span class="kw">public</span> <span class="ty">GameObject</span> handTrackingLeft;
+    <span class="kw">public</span> <span class="ty">GameObject</span> handTrackingRight;
+    <span class="kw">public</span> <span class="ty">GameObject</span> controllerLeft;
+    <span class="kw">public</span> <span class="ty">GameObject</span> controllerRight;
+
+    [<span class="ty">Header</span>(<span class="str">"UI"</span>)]
+    <span class="kw">public</span> <span class="ty">GameObject</span> fixedHUD;
+    <span class="kw">public</span> <span class="ty">GameObject</span> wristUILeft;
+
+    [<span class="ty">Header</span>(<span class="str">"Comfort"</span>)]
+    <span class="kw">public</span> <span class="ty">TunnelingVignetteController</span> vignetteController;
+
+    <span class="kw">void</span> Start()
+    {
+        ApplyProfile();
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"ux_profile_applied"</span>,
+            <span class="kw">new</span> { profile = profile.profileName });
+    }
+
+    <span class="kw">private void</span> ApplyProfile()
+    {
+        <span class="cm">// Locomotion</span>
+        teleportProvider.SetActive(profile.teleportOnly || profile.hybridLocomotion);
+        continuousMoveProvider.SetActive(profile.hybridLocomotion);
+
+        <span class="cm">// Input mode</span>
+        handTrackingLeft.SetActive(profile.useHandTracking);
+        handTrackingRight.SetActive(profile.useHandTracking);
+        controllerLeft.SetActive(profile.useController);
+        controllerRight.SetActive(profile.useController);
+
+        <span class="cm">// UI mode</span>
+        fixedHUD.SetActive(profile.useFixedHUD);
+        wristUILeft.SetActive(profile.useDiegeticWristUI);
+
+        <span class="cm">// Comfort vignette</span>
+        <span class="kw">if</span> (vignetteController != <span class="kw">null</span>)
+            vignetteController.enabled = profile.enableComfortVignette;
+
+        <span class="cm">// Log mode_change event</span>
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"ui_mode_change"</span>, <span class="kw">new</span> {
+            uiMode = profile.useDiegeticWristUI ? <span class="str">"diegetic"</span> : <span class="str">"fixed_hud"</span>,
+            locomotion = profile.teleportOnly ? <span class="str">"teleport"</span> : <span class="str">"hybrid"</span>,
+            input = profile.useHandTracking ? <span class="str">"hand"</span> : <span class="str">"controller"</span>
+        });
+    }
+}</pre>
+<div class="section">
+<div class="section-title">Unity Inspector — drag targets</div>
+<div class="unity-block">
+<div class="unity-row"><span class="unity-key">Profile</span><span class="unity-val">Baseline_UX_Profile or Optimized_UX_Profile</span></div>
+<div class="unity-row"><span class="unity-key">Teleport Provider</span><span class="unity-val">XR Rig → TeleportationProvider</span></div>
+<div class="unity-row"><span class="unity-key">Continuous Move</span><span class="unity-val">XR Rig → ContinuousMoveProvider</span></div>
+<div class="unity-row"><span class="unity-key">Hand Tracking L/R</span><span class="unity-val">Camera Offset → HandInteractionLeft/Right</span></div>
+<div class="unity-row"><span class="unity-key">Controller L/R</span><span class="unity-val">Camera Offset → LeftControllerActionBased</span></div>
+<div class="unity-row"><span class="unity-key">Fixed HUD</span><span class="unity-val">UI → FixedHUD (World Space Canvas)</span></div>
+<div class="unity-row"><span class="unity-key">Wrist UI Left</span><span class="unity-val">LeftHand → WristUI GameObject</span></div>
+</div>
+</div>
+</div>
+
+<!-- SNAP -->
+<div id="panel-snap" class="panel">
+<div class="breadcrumb">Interaction / <span>SnapInteractor.cs</span></div>
+<h2>SnapInteractor</h2>
+<div class="sub">Attach to every grabbable object. Calculates distance/angular error on release, snaps if profile allows, logs all precision metrics.</div>
+<div class="tags"><span class="tag blue">XRGrabInteractable</span><span class="tag green">Logs snap_success / snap_fail</span></div>
+<pre><span class="kw">public class</span> <span class="ty">SnapInteractor</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="cm">// ── Inspector ────────────────────────────────────</span>
+    <span class="kw">public</span> <span class="ty">Transform</span>  snapTarget;       <span class="cm">// empty GameObject at ideal placement</span>
+    <span class="kw">public string</span>     objectId;         <span class="cm">// e.g. "canopic_jar_01"</span>
+    <span class="kw">public</span> <span class="ty">AudioClip</span>  snapSFX;
+    <span class="kw">public</span> <span class="ty">GameObject</span> glowEffect;
+
+    <span class="cm">// ── Runtime state ────────────────────────────────</span>
+    <span class="kw">private float</span>    _grabTimestamp;
+    <span class="kw">private int</span>      _grabAttempts;
+    <span class="kw">private float</span>    _distanceError;
+    <span class="kw">private float</span>    _angularError;
+    <span class="kw">private bool</span>     _isSnapped;
+
+    <span class="cm">// ── Profile reference (from SessionManager) ──────</span>
+    <span class="kw">private</span> <span class="ty">UXProfileSO</span> _profile =>
+        <span class="ty">SessionManager</span>.Instance.activeProfile;
+
+    <span class="cm">// ── XRI callbacks ───────────────────────────────</span>
+    <span class="kw">public void</span> OnGrabbed()
+    {
+        _grabTimestamp = Time.time;
+        _grabAttempts++;
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"grab"</span>, <span class="kw">new</span> { objectId });
+    }
+
+    <span class="kw">public void</span> OnReleased()
+    {
+        <span class="kw">float</span> holdDuration = Time.time - _grabTimestamp;
+        CalculatePlacementErrors();
+
+        <span class="kw">bool</span> snapSuccess = _profile.snappingEnabled
+            && _distanceError <= _profile.snapDistanceThreshold
+            && _angularError  <= _profile.snapAngleThreshold;
+
+        <span class="kw">if</span> (snapSuccess) ExecuteSnap();
+
+        <span class="ty">TelemetryManager</span>.Instance.LogSnapEvent(
+            snapSuccess, _distanceError, _angularError, objectId);
+
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"release"</span>, <span class="kw">new</span> {
+            objectId, holdDuration, snapSuccess,
+            distanceError = _distanceError,
+            angularError  = _angularError,
+            attemptNumber = _grabAttempts
+        });
+
+        TriggerFeedback(snapSuccess);
+    }
+
+    <span class="cm">// ── Helpers ──────────────────────────────────────</span>
+    <span class="kw">private void</span> CalculatePlacementErrors()
+    {
+        <span class="kw">if</span> (snapTarget == <span class="kw">null</span>) <span class="kw">return</span>;
+        _distanceError = Vector3.Distance(transform.position, snapTarget.position);
+        _angularError  = Quaternion.Angle(transform.rotation, snapTarget.rotation);
+    }
+
+    <span class="kw">private void</span> ExecuteSnap()
+    {
+        transform.position = snapTarget.position;
+        transform.rotation = snapTarget.rotation;
+        _isSnapped = <span class="kw">true</span>;
+    }
+
+    <span class="kw">private void</span> TriggerFeedback(<span class="kw">bool</span> success)
+    {
+        <span class="ty">FeedbackManager</span>.Instance.Trigger(
+            haptic:   _profile.useHaptics,
+            audio:    _profile.useAudioFeedback ? snapSFX : <span class="kw">null</span>,
+            glow:     _profile.useVisualGlow ? glowEffect : <span class="kw">null</span>,
+            intensity:_profile.feedbackIntensity,
+            success:  success
+        );
+    }
+}</pre>
+</div>
+
+<!-- FEEDBACK -->
+<div id="panel-feedback" class="panel">
+<div class="breadcrumb">Core / <span>FeedbackManager.cs</span></div>
+<h2>FeedbackManager</h2>
+<div class="sub">Central hub for haptics, audio, and visual glow. Called by SnapInteractor and room managers.</div>
+<pre><span class="kw">public class</span> <span class="ty">FeedbackManager</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public static</span> <span class="ty">FeedbackManager</span> Instance;
+    <span class="kw">public</span> <span class="ty">AudioSource</span> audioSource;
+    <span class="kw">public</span> <span class="ty">XRBaseController</span> leftController, rightController;
+
+    <span class="kw">public void</span> Trigger(<span class="kw">bool</span> haptic, <span class="ty">AudioClip</span> audio,
+                        <span class="ty">GameObject</span> glow, <span class="kw">float</span> intensity, <span class="kw">bool</span> success)
+    {
+        <span class="kw">if</span> (haptic)
+        {
+            <span class="kw">float</span> amp = success ? intensity : intensity * 0.4f;
+            leftController.SendHapticImpulse(amp, 0.1f);
+            rightController.SendHapticImpulse(amp, 0.1f);
+        }
+        <span class="kw">if</span> (audio != <span class="kw">null</span>)
+            audioSource.PlayOneShot(audio, intensity);
+
+        <span class="kw">if</span> (glow != <span class="kw">null</span>)
+            StartCoroutine(FlashGlow(glow, intensity));
+    }
+
+    <span class="kw">private</span> IEnumerator FlashGlow(<span class="ty">GameObject</span> g, <span class="kw">float</span> intensity)
+    {
+        g.SetActive(<span class="kw">true</span>);
+        <span class="kw">yield return new</span> WaitForSeconds(0.3f * intensity);
+        g.SetActive(<span class="kw">false</span>);
+    }
+}</pre>
+</div>
+
+<!-- ROOM 1 MANAGER -->
+<div id="panel-r1manager" class="panel">
+<div class="breadcrumb">Room 1 Tutorial / <span>TutorialManager.cs</span></div>
+<h2>TutorialManager</h2>
+<div class="sub">Orchestrates 3 tutorial steps: movement → shovel grab → door open. Logs each completion.</div>
+<pre><span class="kw">public class</span> <span class="ty">TutorialManager</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="cm">// ── Steps ────────────────────────────────────────</span>
+    <span class="kw">public enum</span> <span class="ty">TutStep</span> { MoveTo, GrabShovel, OpenDoor, Complete }
+    <span class="kw">public</span> <span class="ty">TutStep</span> currentStep = <span class="ty">TutStep</span>.MoveTo;
+
+    <span class="cm">// ── Inspector refs ──────────────────────────────</span>
+    <span class="kw">public</span> <span class="ty">Transform</span>      movementTarget; <span class="cm">// trigger zone at tomb entrance</span>
+    <span class="kw">public</span> <span class="ty">ShovelInteractable</span> shovel;
+    <span class="kw">public</span> <span class="ty">TombDoorOpener</span>    door;
+    <span class="kw">public</span> <span class="ty">TaskInstructionUI</span> instructionUI;
+
+    <span class="cm">// ── Metrics ──────────────────────────────────────</span>
+    <span class="kw">private float</span> _stepStartTime;
+    <span class="kw">private int</span>   _stepErrors;
+
+    <span class="kw">void</span> Start()
+    {
+        <span class="ty">SessionManager</span>.Instance.TransitionToPhase(<span class="str">"tutorial"</span>);
+        BeginStep(<span class="ty">TutStep</span>.MoveTo);
+    }
+
+    <span class="kw">public void</span> OnMovementComplete()  => CompleteStep(<span class="ty">TutStep</span>.GrabShovel);
+    <span class="kw">public void</span> OnShovelGrabbed()     => CompleteStep(<span class="ty">TutStep</span>.OpenDoor);
+    <span class="kw">public void</span> OnDoorOpened()        => CompleteStep(<span class="ty">TutStep</span>.Complete);
+
+    <span class="kw">private void</span> BeginStep(<span class="ty">TutStep</span> step)
+    {
+        currentStep = step;
+        _stepStartTime = Time.time;
+        _stepErrors = 0;
+        instructionUI.ShowStep(step.ToString());
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"tutorial_step_begin"</span>,
+            <span class="kw">new</span> { step = step.ToString() });
+    }
+
+    <span class="kw">private void</span> CompleteStep(<span class="ty">TutStep</span> next)
+    {
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"tutorial_step_complete"</span>, <span class="kw">new</span> {
+            step        = currentStep.ToString(),
+            duration    = Time.time - _stepStartTime,
+            errorCount  = _stepErrors
+        });
+        <span class="kw">if</span> (next == <span class="ty">TutStep</span>.Complete) OnTutorialComplete();
+        <span class="kw">else</span> BeginStep(next);
+    }
+
+    <span class="kw">private void</span> OnTutorialComplete()
+    {
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"task_complete"</span>, <span class="kw">new</span> {
+            task     = <span class="str">"tutorial"</span>,
+            duration = <span class="ty">SessionManager</span>.Instance.GetPhaseDuration()
+        });
+        <span class="ty">SceneTransitionManager</span>.Instance.LoadRoom2();
+    }
+}</pre>
+</div>
+
+<!-- ROOM 1 SHOVEL -->
+<div id="panel-r1shovel" class="panel">
+<div class="breadcrumb">Room 1 Tutorial / <span>ShovelInteractable.cs</span></div>
+<h2>ShovelInteractable</h2>
+<div class="sub">The tutorial's first grab object. Triggers TutorialManager on pick-up.</div>
+<pre><span class="kw">public class</span> <span class="ty">ShovelInteractable</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public</span> <span class="ty">TutorialManager</span> tutorialManager;
+    <span class="kw">public</span> <span class="ty">SnapInteractor</span>   snapInteractor; <span class="cm">// sibling component</span>
+    <span class="kw">private bool</span> _grabbed;
+
+    <span class="cm">// Called by XRGrabInteractable UnityEvent → SelectEntered</span>
+    <span class="kw">public void</span> OnGrab()
+    {
+        <span class="kw">if</span> (_grabbed) <span class="kw">return</span>;
+        _grabbed = <span class="kw">true</span>;
+        snapInteractor.OnGrabbed();
+        tutorialManager.OnShovelGrabbed();
+    }
+
+    <span class="cm">// Called by XRGrabInteractable UnityEvent → SelectExited</span>
+    <span class="kw">public void</span> OnRelease() => snapInteractor.OnReleased();
+}</pre>
+<div class="section">
+<div class="section-title">Unity setup</div>
+<div class="unity-block">
+<div class="unity-row"><span class="unity-key">Components on Shovel prefab</span><span class="unity-val">Rigidbody, XRGrabInteractable, SnapInteractor, ShovelInteractable</span></div>
+<div class="unity-row"><span class="unity-key">Collider</span><span class="unity-val">MeshCollider (convex) or BoxCollider</span></div>
+<div class="unity-row"><span class="unity-key">Snap Target</span><span class="unity-val">Empty GO positioned near door</span></div>
+<div class="unity-row"><span class="unity-key">Object Id</span><span class="unity-val">shovel_01</span></div>
+</div>
+</div>
+</div>
+
+<!-- ROOM 1 DOOR -->
+<div id="panel-r1door" class="panel">
+<div class="breadcrumb">Room 1 Tutorial / <span>TombDoorOpener.cs</span></div>
+<h2>TombDoorOpener</h2>
+<div class="sub">Animated tomb entrance door. Triggered by TutorialManager after shovel is placed.</div>
+<pre><span class="kw">public class</span> <span class="ty">TombDoorOpener</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public</span> <span class="ty">Animator</span>        doorAnimator;    <span class="cm">// has "Open" trigger</span>
+    <span class="kw">public</span> <span class="ty">AudioClip</span>        doorCreakSFX;
+    <span class="kw">public</span> <span class="ty">TutorialManager</span> tutorialManager;
+    <span class="kw">private bool</span> _opened;
+
+    <span class="kw">public void</span> Open()
+    {
+        <span class="kw">if</span> (_opened) <span class="kw">return</span>;
+        _opened = <span class="kw">true</span>;
+        doorAnimator.SetTrigger(<span class="str">"Open"</span>);
+        <span class="ty">FeedbackManager</span>.Instance.Trigger(
+            haptic: <span class="ty">SessionManager</span>.Instance.activeProfile.useHaptics,
+            audio: doorCreakSFX, glow: <span class="kw">null</span>, intensity: 0.8f, success: <span class="kw">true</span>);
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"door_opened"</span>,
+            <span class="kw">new</span> { door = <span class="str">"tutorial_entrance"</span> });
+        Invoke(nameof(NotifyManager), 1.2f); <span class="cm">// after animation settles</span>
+    }
+
+    <span class="kw">private void</span> NotifyManager() => tutorialManager.OnDoorOpened();
+}</pre>
+</div>
+
+<!-- ROOM 2 MANAGER -->
+<div id="panel-r2manager" class="panel">
+<div class="breadcrumb">Room 2 Low Cognitive / <span>HieroglyphPuzzleManager.cs</span></div>
+<h2>HieroglyphPuzzleManager</h2>
+<div class="sub">Player taps hieroglyph tiles to spell Tutankhamun. Validates sequence, logs every selection.</div>
+<pre><span class="kw">public class</span> <span class="ty">HieroglyphPuzzleManager</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="cm">// ── Config ──────────────────────────────────────</span>
+    <span class="kw">public</span> <span class="ty">HieroglyphTile</span>[]  allTiles;
+    <span class="kw">public string</span>[]           correctSequence; <span class="cm">// e.g. {"tut","ankh","amun"}</span>
+    <span class="kw">public</span> <span class="ty">PlankBridgeManager</span> bridgeManager;
+    <span class="kw">public</span> <span class="ty">TaskInstructionUI</span>  ui;
+
+    <span class="cm">// ── State ────────────────────────────────────────</span>
+    <span class="kw">private</span> List&lt;<span class="kw">string</span>&gt; _selectedSequence = <span class="kw">new</span>();
+    <span class="kw">private int</span>          _wrongAttempts;
+    <span class="kw">private float</span>        _taskStart;
+
+    <span class="kw">void</span> Start()
+    {
+        _taskStart = Time.time;
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"puzzle_start"</span>,
+            <span class="kw">new</span> { puzzle = <span class="str">"hieroglyph"</span> });
+        ui.Show(<span class="str">"Translate the cartouche to reveal the king's name"</span>);
+    }
+
+    <span class="cm">// Called by HieroglyphTile on select</span>
+    <span class="kw">public void</span> OnTileSelected(<span class="kw">string</span> glyphId)
+    {
+        _selectedSequence.Add(glyphId);
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"hieroglyph_selected"</span>, <span class="kw">new</span> {
+            glyphId,
+            positionInSequence = _selectedSequence.Count - 1,
+            timestamp = Time.time
+        });
+
+        <span class="kw">if</span> (_selectedSequence.Count == correctSequence.Length)
+            ValidateSequence();
+    }
+
+    <span class="kw">private void</span> ValidateSequence()
+    {
+        <span class="kw">bool</span> correct = <span class="ty">Enumerable</span>.SequenceEqual(_selectedSequence, correctSequence);
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"puzzle_attempt"</span>, <span class="kw">new</span> {
+            puzzle       = <span class="str">"hieroglyph"</span>,
+            correct,
+            sequence     = string.Join(<span class="str">","</span>, _selectedSequence),
+            attemptCount = ++_wrongAttempts + (correct ? -1 : 0),
+            timeElapsed  = Time.time - _taskStart
+        });
+
+        <span class="kw">if</span> (correct) OnPuzzleSolved();
+        <span class="kw">else</span> { _selectedSequence.Clear(); _wrongAttempts++; ResetTiles(); }
+    }
+
+    <span class="kw">private void</span> OnPuzzleSolved()
+    {
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"task_complete"</span>, <span class="kw">new</span> {
+            task       = <span class="str">"hieroglyph_puzzle"</span>,
+            duration   = Time.time - _taskStart,
+            errorCount = _wrongAttempts
+        });
+        bridgeManager.EnablePlanks(); <span class="cm">// unlock bridge task</span>
+    }
+
+    <span class="kw">private void</span> ResetTiles() { foreach (<span class="kw">var</span> t <span class="kw">in</span> allTiles) t.Deselect(); }
+}</pre>
+</div>
+
+<!-- ROOM 2 TILE -->
+<div id="panel-r2tile" class="panel">
+<div class="breadcrumb">Room 2 Low Cognitive / <span>HieroglyphTile.cs</span></div>
+<h2>HieroglyphTile</h2>
+<div class="sub">Single tile. Responds to grab or pointer (based on profile). Highlights on select.</div>
+<pre><span class="kw">public class</span> <span class="ty">HieroglyphTile</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public string</span>                  glyphId;     <span class="cm">// "tut" | "ankh" | "amun" etc.</span>
+    <span class="kw">public</span> <span class="ty">HieroglyphPuzzleManager</span> puzzleManager;
+    <span class="kw">public</span> <span class="ty">Material</span>               normalMat;
+    <span class="kw">public</span> <span class="ty">Material</span>               selectedMat;
+    <span class="kw">public</span> <span class="ty">Renderer</span>               tileRenderer;
+
+    <span class="kw">private bool</span> _selected;
+
+    <span class="cm">// Call from XRDirectInteractor or XRPokeInteractor SelectEntered event</span>
+    <span class="kw">public void</span> Select()
+    {
+        <span class="kw">if</span> (_selected) <span class="kw">return</span>;
+        _selected = <span class="kw">true</span>;
+        tileRenderer.material = selectedMat;
+        <span class="ty">FeedbackManager</span>.Instance.Trigger(
+            haptic: <span class="ty">SessionManager</span>.Instance.activeProfile.useHaptics,
+            audio: <span class="kw">null</span>, glow: <span class="kw">null</span>, intensity: 0.5f, success: <span class="kw">true</span>);
+        puzzleManager.OnTileSelected(glyphId);
+    }
+
+    <span class="kw">public void</span> Deselect()
+    {
+        _selected = <span class="kw">false</span>;
+        tileRenderer.material = normalMat;
+    }
+}</pre>
+<div class="section">
+<div class="section-title">Unity setup per tile prefab</div>
+<div class="unity-block">
+<div class="unity-row"><span class="unity-key">Glyph Id</span><span class="unity-val">tut / ankh / amun / heqa / neb / kheperu</span></div>
+<div class="unity-row"><span class="unity-key">Collider</span><span class="unity-val">BoxCollider (Is Trigger: false)</span></div>
+<div class="unity-row"><span class="unity-key">Layer</span><span class="unity-val">Interactable</span></div>
+<div class="unity-row"><span class="unity-key">XRSimpleInteractable</span><span class="unity-val">SelectEntered → HieroglyphTile.Select()</span></div>
+</div>
+</div>
+</div>
+
+<!-- ROOM 2 BRIDGE -->
+<div id="panel-r2bridge" class="panel">
+<div class="breadcrumb">Room 2 Low Cognitive / <span>PlankBridgeManager.cs</span></div>
+<h2>PlankBridgeManager</h2>
+<div class="sub">Player places 3 planks across a pit. Unlocked after puzzle. Tracks placement order and errors.</div>
+<pre><span class="kw">public class</span> <span class="ty">PlankBridgeManager</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public</span> <span class="ty">PlankInteractable</span>[] planks;     <span class="cm">// 3 planks in scene</span>
+    <span class="kw">public</span> <span class="ty">Transform</span>[]         snapZones;  <span class="cm">// 3 target positions on bridge</span>
+    <span class="kw">public</span> <span class="ty">GameObject</span>          bridgeBlocker; <span class="cm">// invisible wall until complete</span>
+    <span class="kw">public</span> <span class="ty">TaskInstructionUI</span>   ui;
+
+    <span class="kw">private int</span>   _planksPlaced;
+    <span class="kw">private float</span> _taskStart;
+
+    <span class="kw">public void</span> EnablePlanks()
+    {
+        _taskStart = Time.time;
+        <span class="kw">foreach</span> (<span class="kw">var</span> p <span class="kw">in</span> planks) p.SetInteractable(<span class="kw">true</span>);
+        ui.Show(<span class="str">"Place the wooden planks to cross the chasm"</span>);
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"task_start"</span>,
+            <span class="kw">new</span> { task = <span class="str">"bridge_building"</span> });
+    }
+
+    <span class="kw">public void</span> OnPlankPlaced(<span class="kw">int</span> plankIndex, <span class="kw">float</span> distError, <span class="kw">float</span> angError)
+    {
+        _planksPlaced++;
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"plank_placed"</span>, <span class="kw">new</span> {
+            plankIndex, _planksPlaced,
+            distanceError = distError, angularError = angError,
+            timeElapsed   = Time.time - _taskStart
+        });
+
+        <span class="kw">if</span> (_planksPlaced == planks.Length) OnBridgeComplete();
+    }
+
+    <span class="kw">private void</span> OnBridgeComplete()
+    {
+        bridgeBlocker.SetActive(<span class="kw">false</span>);
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"task_complete"</span>, <span class="kw">new</span> {
+            task = <span class="str">"bridge_building"</span>, duration = Time.time - _taskStart
+        });
+        <span class="ty">SceneTransitionManager</span>.Instance.LoadRoom3();
+    }
+}</pre>
+</div>
+
+<!-- ROOM 2 PLANK -->
+<div id="panel-r2plank" class="panel">
+<div class="breadcrumb">Room 2 Low Cognitive / <span>PlankInteractable.cs</span></div>
+<h2>PlankInteractable</h2>
+<div class="sub">Plank prefab. Extends SnapInteractor logic with bridge-specific reporting.</div>
+<pre><span class="kw">public class</span> <span class="ty">PlankInteractable</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public int</span>                 plankIndex;    <span class="cm">// 0, 1, 2</span>
+    <span class="kw">public</span> <span class="ty">SnapInteractor</span>     snapInteractor;
+    <span class="kw">public</span> <span class="ty">PlankBridgeManager</span> bridgeManager;
+    <span class="kw">public</span> <span class="ty">Transform</span>          snapZone;
+
+    <span class="kw">private bool</span> _placed;
+
+    <span class="kw">public void</span> SetInteractable(<span class="kw">bool</span> val) =>
+        GetComponent&lt;<span class="ty">XRGrabInteractable</span>&gt;().enabled = val;
+
+    <span class="cm">// Fires from XRGrabInteractable → SelectExited</span>
+    <span class="kw">public void</span> OnRelease()
+    {
+        <span class="kw">if</span> (_placed) <span class="kw">return</span>;
+        snapInteractor.OnReleased(); <span class="cm">// handles snap + telemetry</span>
+
+        <span class="kw">float</span> distErr = Vector3.Distance(transform.position, snapZone.position);
+        <span class="kw">if</span> (distErr < 0.4f) <span class="cm">// generous zone for planks</span>
+        {
+            _placed = <span class="kw">true</span>;
+            bridgeManager.OnPlankPlaced(plankIndex, distErr,
+                Quaternion.Angle(transform.rotation, snapZone.rotation));
+        }
+    }
+}</pre>
+</div>
+
+<!-- ROOM 3 MANAGER -->
+<div id="panel-r3manager" class="panel">
+<div class="breadcrumb">Room 3 High Cognitive / <span>TreasureAssemblyManager.cs</span></div>
+<h2>TreasureAssemblyManager</h2>
+<div class="sub">5-step ritual: place treasures in correct sequence on altar. Any wrong order resets the step. High overload expected in Baseline.</div>
+<pre><span class="kw">public class</span> <span class="ty">TreasureAssemblyManager</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="cm">// ── Sequence config ─────────────────────────────</span>
+    <span class="kw">public string</span>[]          correctOrder = {
+        <span class="str">"canopic_jar"</span>, <span class="str">"ankh_sceptre"</span>, <span class="str">"ushabti"</span>, <span class="str">"scarab"</span>, <span class="str">"crown"</span>
+    };
+
+    <span class="kw">public</span> <span class="ty">TreasureObject</span>[] treasures;        <span class="cm">// all 5 objects</span>
+    <span class="kw">public</span> <span class="ty">AssemblySnapZone</span>[] snapZones;       <span class="cm">// 5 altar positions</span>
+    <span class="kw">public</span> <span class="ty">TaskInstructionUI</span> ui;
+
+    <span class="cm">// ── Runtime state ────────────────────────────────</span>
+    <span class="kw">private int</span>   _currentStep;
+    <span class="kw">private int</span>   _sequenceErrors;
+    <span class="kw">private float</span> _taskStart;
+    <span class="kw">private float</span> _stepStart;
+
+    <span class="kw">void</span> Start()
+    {
+        _taskStart = _stepStart = Time.time;
+        <span class="ty">SessionManager</span>.Instance.TransitionToPhase(<span class="str">"procedural"</span>);
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"task_start"</span>,
+            <span class="kw">new</span> { task = <span class="str">"treasure_assembly"</span>, requiredSteps = correctOrder.Length });
+        ShowCurrentStepInstruction();
+    }
+
+    <span class="cm">// Called by AssemblySnapZone when an object lands</span>
+    <span class="kw">public void</span> OnObjectPlaced(<span class="kw">string</span> objectId, <span class="kw">float</span> distErr, <span class="kw">float</span> angErr)
+    {
+        <span class="kw">bool</span> correctObj = objectId == correctOrder[_currentStep];
+
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"treasure_placed"</span>, <span class="kw">new</span> {
+            objectId, step = _currentStep, correct = correctObj,
+            distanceError = distErr, angularError = angErr,
+            stepDuration  = Time.time - _stepStart,
+            cumulativeErrors = _sequenceErrors
+        });
+
+        <span class="kw">if</span> (correctObj)
+        {
+            _currentStep++;
+            _stepStart = Time.time;
+            <span class="kw">if</span> (_currentStep >= correctOrder.Length) OnAssemblyComplete();
+            <span class="kw">else</span> ShowCurrentStepInstruction();
+        }
+        <span class="kw">else</span>
+        {
+            _sequenceErrors++;
+            <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"sequence_error"</span>, <span class="kw">new</span> {
+                expected = correctOrder[_currentStep], received = objectId,
+                errorCount = _sequenceErrors
+            });
+            <span class="ty">FeedbackManager</span>.Instance.Trigger(
+                <span class="ty">SessionManager</span>.Instance.activeProfile.useHaptics,
+                <span class="kw">null</span>, <span class="kw">null</span>, 0.3f, <span class="kw">false</span>); <span class="cm">// error pulse</span>
+        }
+    }
+
+    <span class="kw">private void</span> ShowCurrentStepInstruction()
+    {
+        <span class="kw">string</span>[] labels = { <span class="str">"Canopic Jar"</span>,<span class="str">"Ankh Sceptre"</span>,<span class="str">"Ushabti"</span>,<span class="str">"Scarab"</span>,<span class="str">"Crown"</span> };
+        ui.Show($<span class="str">"Step {_currentStep+1}/5 — Place the {labels[_currentStep]}"</span>);
+    }
+
+    <span class="kw">private void</span> OnAssemblyComplete()
+    {
+        <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"task_complete"</span>, <span class="kw">new</span> {
+            task           = <span class="str">"treasure_assembly"</span>,
+            totalDuration  = Time.time - _taskStart,
+            sequenceErrors = _sequenceErrors,
+            profile        = <span class="ty">SessionManager</span>.Instance.activeProfile.profileName
+        });
+        <span class="ty">SceneTransitionManager</span>.Instance.EndSession();
+    }
+}</pre>
+</div>
+
+<!-- ROOM 3 TREASURE -->
+<div id="panel-r3treasure" class="panel">
+<div class="breadcrumb">Room 3 High Cognitive / <span>TreasureObject.cs</span></div>
+<h2>TreasureObject</h2>
+<div class="sub">Individual treasure prefab. Wraps SnapInteractor, adds object identity for sequence validation.</div>
+<pre><span class="kw">public class</span> <span class="ty">TreasureObject</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public string</span>              objectId;       <span class="cm">// matches correctOrder array</span>
+    <span class="kw">public</span> <span class="ty">SnapInteractor</span>     snapInteractor;
+    <span class="kw">public</span> <span class="ty">Outline</span>            outlineEffect;  <span class="cm">// e.g. Quick Outline package</span>
+
+    <span class="kw">private bool</span> _placed;
+
+    <span class="kw">public void</span> OnGrab()
+    {
+        snapInteractor.OnGrabbed();
+        <span class="cm">// Highlight the matching snap zone</span>
+        <span class="ty">AssemblySnapZone</span>.HighlightTargetFor(objectId);
+    }
+
+    <span class="kw">public void</span> OnRelease()
+    {
+        snapInteractor.OnReleased();
+        <span class="ty">AssemblySnapZone</span>.ClearHighlight();
+    }
+
+    <span class="kw">public void</span> MarkPlaced()
+    {
+        _placed = <span class="kw">true</span>;
+        GetComponent&lt;<span class="ty">XRGrabInteractable</span>&gt;().enabled = <span class="kw">false</span>; <span class="cm">// lock in place</span>
+        <span class="kw">if</span> (outlineEffect) outlineEffect.enabled = <span class="kw">false</span>;
+    }
+}</pre>
+</div>
+
+<!-- ROOM 3 SNAP ZONE -->
+<div id="panel-r3snap" class="panel">
+<div class="breadcrumb">Room 3 High Cognitive / <span>AssemblySnapZone.cs</span></div>
+<h2>AssemblySnapZone</h2>
+<div class="sub">Each altar position. Detects when a treasure enters its collider and notifies TreasureAssemblyManager.</div>
+<pre><span class="kw">public class</span> <span class="ty">AssemblySnapZone</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public string</span>                    zoneId;        <span class="cm">// matches slot index</span>
+    <span class="kw">public</span> <span class="ty">TreasureAssemblyManager</span>  assemblyManager;
+    <span class="kw">public</span> <span class="ty">Renderer</span>                 highlightRenderer;
+    <span class="kw">public</span> <span class="ty">Material</span>                 highlightMat, normalMat;
+
+    <span class="kw">private static</span> <span class="ty">AssemblySnapZone</span>[] _allZones;
+
+    <span class="kw">void</span> Awake()
+    {
+        _allZones = FindObjectsOfType&lt;<span class="ty">AssemblySnapZone</span>&gt;();
+    }
+
+    <span class="kw">void</span> OnTriggerEnter(<span class="ty">Collider</span> other)
+    {
+        <span class="kw">var</span> treasure = other.GetComponent&lt;<span class="ty">TreasureObject</span>&gt;();
+        <span class="kw">if</span> (treasure == <span class="kw">null</span>) <span class="kw">return</span>;
+
+        <span class="kw">float</span> dist = Vector3.Distance(other.transform.position, transform.position);
+        <span class="kw">float</span> ang  = Quaternion.Angle(other.transform.rotation, transform.rotation);
+
+        assemblyManager.OnObjectPlaced(treasure.objectId, dist, ang);
+        treasure.MarkPlaced();
+    }
+
+    <span class="kw">public static void</span> HighlightTargetFor(<span class="kw">string</span> objectId)
+    {
+        <span class="cm">// Zone naming convention: zone_id matches objectId by index</span>
+    }
+
+    <span class="kw">public static void</span> ClearHighlight()
+    {
+        <span class="kw">foreach</span> (<span class="kw">var</span> z <span class="kw">in</span> _allZones)
+            z.highlightRenderer.material = z.normalMat;
+    }
+}</pre>
+</div>
+
+<!-- WRIST UI -->
+<div id="panel-wrist" class="panel">
+<div class="breadcrumb">UI / <span>WristUIController.cs</span></div>
+<h2>WristUIController</h2>
+<div class="sub">Optimized only. Canvas parented to left wrist bone. Shows current task text.</div>
+<pre><span class="kw">public class</span> <span class="ty">WristUIController</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public</span> <span class="ty">Transform</span> wristBone;        <span class="cm">// left hand palm bone</span>
+    <span class="kw">public</span> <span class="ty">Vector3</span>   positionOffset = <span class="kw">new</span> <span class="ty">Vector3</span>(0, 0.05f, 0);
+    <span class="kw">public</span> <span class="ty">Vector3</span>   rotationOffset = <span class="kw">new</span> <span class="ty">Vector3</span>(90, 0, 0);
+    <span class="kw">public</span> <span class="ty">TMP_Text</span>  taskLabel;
+    <span class="kw">public</span> <span class="ty">TMP_Text</span>  stepLabel;
+
+    <span class="kw">private bool</span> _loggedGaze = <span class="kw">false</span>;
+
+    <span class="kw">void</span> LateUpdate()
+    {
+        <span class="kw">if</span> (wristBone == <span class="kw">null</span>) <span class="kw">return</span>;
+        transform.position = wristBone.TransformPoint(positionOffset);
+        transform.rotation = wristBone.rotation * Quaternion.Euler(rotationOffset);
+    }
+
+    <span class="kw">public void</span> UpdateContent(<span class="kw">string</span> task, <span class="kw">string</span> step)
+    {
+        taskLabel.text = task;
+        stepLabel.text = step;
+    }
+}</pre>
+<div class="section">
+<div class="section-title">Unity setup</div>
+<div class="unity-block">
+<div class="unity-row"><span class="unity-key">Parent</span><span class="unity-val">Left Hand → Palm bone (XR Hand hierarchy)</span></div>
+<div class="unity-row"><span class="unity-key">Canvas Render Mode</span><span class="unity-val">World Space</span></div>
+<div class="unity-row"><span class="unity-key">Canvas Width × Height</span><span class="unity-val">0.12 × 0.08 (in meters)</span></div>
+<div class="unity-row"><span class="unity-key">Enabled by</span><span class="unity-val">XRRigConfigurator on Start</span></div>
+</div>
+</div>
+</div>
+
+<!-- FIXED HUD -->
+<div id="panel-hud" class="panel">
+<div class="breadcrumb">UI / <span>FixedHUDController.cs</span></div>
+<h2>FixedHUDController</h2>
+<div class="sub">Baseline only. World-space canvas fixed in front of player. Tracks how often player looks away — key split-attention metric.</div>
+<pre><span class="kw">public class</span> <span class="ty">FixedHUDController</span> : <span class="ty">MonoBehaviour</span>
+{
+    <span class="kw">public</span> <span class="ty">Transform</span> playerCamera;
+    <span class="kw">public</span> <span class="ty">Vector3</span>   worldPosition;   <span class="cm">// fixed in scene, NOT head-locked</span>
+    <span class="kw">public</span> <span class="ty">TMP_Text</span>  taskLabel;
+
+    <span class="cm">// Gaze tracking for split-attention analysis</span>
+    <span class="kw">private bool</span>  _isLookingAtHUD;
+    <span class="kw">private int</span>   _gazeShiftCount;
+    <span class="kw">private float</span> _lastGazeTime;
+    <span class="kw">private float</span> _gazeAngleThreshold = 15f;
+
+    <span class="kw">void</span> Update() => TrackGaze();
+
+    <span class="kw">private void</span> TrackGaze()
+    {
+        <span class="ty">Vector3</span> toHUD = (transform.position - playerCamera.position).normalized;
+        <span class="kw">float</span> angle = Vector3.Angle(playerCamera.forward, toHUD);
+        <span class="kw">bool</span> lookingNow = angle < _gazeAngleThreshold;
+
+        <span class="kw">if</span> (lookingNow != _isLookingAtHUD)
+        {
+            _isLookingAtHUD = lookingNow;
+            <span class="kw">if</span> (lookingNow)
+            {
+                _gazeShiftCount++;
+                <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"hud_gaze_on"</span>, <span class="kw">new</span> {
+                    gazeShiftNumber = _gazeShiftCount,
+                    timeSinceLastGaze = Time.time - _lastGazeTime
+                });
+                _lastGazeTime = Time.time;
+            }
+            <span class="kw">else</span>
+            {
+                <span class="ty">TelemetryManager</span>.Instance.LogEvent(<span class="str">"hud_gaze_off"</span>, <span class="kw">new</span> {
+                    gazeDuration = Time.time - _lastGazeTime
+                });
+            }
+        }
+    }
+}</pre>
+<div class="section">
+<div class="section-title">Why this matters for your ML</div>
+<div class="unity-block">
+<div class="unity-row"><span class="unity-key">hud_gaze_on events</span><span class="unity-val">Count = split-attention interruptions</span></div>
+<div class="unity-row"><span class="unity-key">gazeDuration</span><span class="unity-val">Time cost of each look-away</span></div>
+<div class="unity-row"><span class="unity-key">timeSinceLastGaze</span><span class="unity-val">Attention rhythm proxy</span></div>
+<div class="unity-row"><span class="unity-key">gazeShiftCount vs NASA-TLX</span><span class="unity-val">Primary label-alignment feature</span></div>
+</div>
+</div>
+</div>
+
+<!-- EVENT SCHEMA -->
+<div id="panel-events" class="panel">
+<div class="breadcrumb">Data / <span>Events collection schema</span></div>
+<h2>Events collection</h2>
+<div class="sub">All discrete user actions. Every document shares this base structure plus a data object.</div>
+<pre><span class="cm">{
+  _id:        ObjectId,
+  session_id: "uuid-string",        // links to Sessions collection
+  timestamp:  0.216,                // Time.time (seconds)
+  phase:      "tutorial|sorting|procedural",
+  event_type: "...",                // see table below
+  data: { ... }                     // event-specific payload
+}</span></pre>
+<div class="section">
+<div class="section-title">All event_type values</div>
+<table class="event-table">
+<thead><tr><th>event_type</th><th>data fields</th><th>room</th></tr></thead>
+<tbody>
+<tr><td>session_start</td><td>participantId, profile, isOptimized</td><td>all</td></tr>
+<tr><td>ux_profile_applied</td><td>profile</td><td>all</td></tr>
+<tr><td>ui_mode_change</td><td>uiMode, locomotion, input</td><td>all</td></tr>
+<tr><td>phase_transition</td><td>phase</td><td>all</td></tr>
+<tr><td>locomotion_setup</td><td>type (teleport|hybrid)</td><td>all</td></tr>
+<tr><td>grab</td><td>objectId</td><td>all</td></tr>
+<tr><td>release</td><td>objectId, holdDuration, snapSuccess, distanceError, angularError, attemptNumber</td><td>all</td></tr>
+<tr><td>snap_success</td><td>objectId, distanceError, angularError</td><td>all</td></tr>
+<tr><td>snap_fail</td><td>objectId, distanceError, angularError</td><td>all</td></tr>
+<tr><td>tutorial_step_begin</td><td>step</td><td>R1</td></tr>
+<tr><td>tutorial_step_complete</td><td>step, duration, errorCount</td><td>R1</td></tr>
+<tr><td>door_opened</td><td>door</td><td>R1</td></tr>
+<tr><td>puzzle_start</td><td>puzzle</td><td>R2</td></tr>
+<tr><td>hieroglyph_selected</td><td>glyphId, positionInSequence</td><td>R2</td></tr>
+<tr><td>puzzle_attempt</td><td>puzzle, correct, sequence, attemptCount, timeElapsed</td><td>R2</td></tr>
+<tr><td>plank_placed</td><td>plankIndex, planksPlaced, distanceError, angularError, timeElapsed</td><td>R2</td></tr>
+<tr><td>task_start</td><td>task, requiredSteps?</td><td>R2, R3</td></tr>
+<tr><td>treasure_placed</td><td>objectId, step, correct, distanceError, angularError, stepDuration, cumulativeErrors</td><td>R3</td></tr>
+<tr><td>sequence_error</td><td>expected, received, errorCount</td><td>R3</td></tr>
+<tr><td>hud_gaze_on</td><td>gazeShiftNumber, timeSinceLastGaze</td><td>Baseline only</td></tr>
+<tr><td>hud_gaze_off</td><td>gazeDuration</td><td>Baseline only</td></tr>
+<tr><td>task_complete</td><td>task, duration, errorCount?, sequenceErrors?</td><td>all</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- HIGHFREQ SCHEMA -->
+<div id="panel-highfreq" class="panel">
+<div class="breadcrumb">Data / <span>HighFreq_Logs collection</span></div>
+<h2>HighFreq_Logs collection</h2>
+<div class="sub">Fires every ~16 ms (60 Hz). Foundation for pseudo-oculometrics and Isolation Forest overload detection.</div>
+<pre><span class="cm">{
+  _id:        ObjectId,
+  session_id: "uuid-string",
+  timestamp:  0.4167,               // high-precision float
+  event_type: "head_tracking",
+  data: {
+    position: { x: 0.1, y: 1.7, z: 2.3 },
+    rotation: { x: 5.2, y: 183.4, z: 0.0 },
+    pitch:    5.2,                  // looking up/down
+    yaw:      183.4                 // looking left/right
+  }
+}</span></pre>
+
+<div class="section">
+<div class="section-title">How this feeds your ML pipeline</div>
+<div class="unity-block">
+<div class="label">Feature extraction from HighFreq_Logs</div>
+<div class="unity-row"><span class="unity-key">Head yaw variance (baseline)</span><span class="unity-val">→ Split-attention proxy (hud look-aways)</span></div>
+<div class="unity-row"><span class="unity-key">Head velocity spikes</span><span class="unity-val">→ Confusion / erratic behavior flag</span></div>
+<div class="unity-row"><span class="unity-key">Freeze periods (near-zero velocity)</span><span class="unity-val">→ Cognitive overload flag for Isolation Forest</span></div>
+<div class="unity-row"><span class="unity-key">Pitch during task</span><span class="unity-val">→ Looking down at objects vs up at HUD</span></div>
+<div class="unity-row"><span class="unity-key">Rolling std over 1s windows</span><span class="unity-val">→ Input to K-Means behavioral clustering</span></div>
+</div>
+<div class="unity-block">
+<div class="label">Recommended post-processing segments</div>
+<div class="unity-row"><span class="unity-key">Window size</span><span class="unity-val">500 ms (30 frames) rolling</span></div>
+<div class="unity-row"><span class="unity-key">Phase labels</span><span class="unity-val">Join via session_id + timestamp to Events</span></div>
+<div class="unity-row"><span class="unity-key">Quality gate</span><span class="unity-val">Reject windows with >10% missing frames</span></div>
+<div class="unity-row"><span class="unity-key">NASA-TLX label join</span><span class="unity-val">session_id → Sessions collection → tlxScore</span></div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
