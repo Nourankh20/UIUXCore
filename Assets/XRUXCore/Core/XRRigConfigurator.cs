@@ -13,8 +13,6 @@ public class XRRigConfigurator : MonoBehaviour
     public GameObject continuousMoveProvider;
 
     [Header("Input")]
-    public GameObject handTrackingLeft;
-    public GameObject handTrackingRight;
     public GameObject controllerLeft;
     public GameObject controllerRight;
 
@@ -25,9 +23,33 @@ public class XRRigConfigurator : MonoBehaviour
     [Header("Comfort")]
     public TunnelingVignetteController vignetteController;
 
+    void Awake()
+    {
+        // Step 1: Link the master instance as early as possible
+        FetchProfileFromMaster();
+    }
+
     void Start()
     {
-        // FORCE PULL: Look at the master SessionManager instance surviving from the previous scene
+        // Step 2: Double-check registration in case of scene load lag
+        if (profile == null)
+            FetchProfileFromMaster();
+
+        // Safety Check
+        if (profile == null)
+        {
+            Debug.LogError("[XRRigConfigurator] CRITICAL error: No UXProfileSO profile found! Rig configuration aborted.");
+            return;
+        }
+
+        // CRITICAL FIX: Apply settings here so we run AFTER the XR Toolkit finishes initializing
+        ApplyProfile();
+
+        TelemetryManager.Instance?.LogEvent("ux_profile_applied", new { profile = profile.profileName });
+    }
+
+    private void FetchProfileFromMaster()
+    {
         if (SessionManager.Instance != null && SessionManager.Instance.activeProfile != null)
         {
             profile = SessionManager.Instance.activeProfile;
@@ -37,33 +59,19 @@ public class XRRigConfigurator : MonoBehaviour
         {
             Debug.LogWarning("[XRRigConfigurator] Master SessionManager not found. Falling back to local scene profile asset.");
         }
-
-        // Safety Check
-        if (profile == null)
-        {
-            Debug.LogError("[XRRigConfigurator] CRITICAL error: No UXProfileSO profile found! Rig configuration aborted.");
-            return;
-        }
-
-        // Apply the settings of whichever profile won
-        ApplyProfile();
-
-        TelemetryManager.Instance?.LogEvent("ux_profile_applied", new { profile = profile.profileName });
     }
 
     private void ApplyProfile()
     {
         // 1. Locomotion Logic
         if (teleportProvider != null)
-            teleportProvider.SetActive(profile.teleportOnly || profile.hybridLocomotion);
+            teleportProvider.SetActive(true);
 
+        // Continuous strictly adheres to the baseline profile setting now
         if (continuousMoveProvider != null)
-            continuousMoveProvider.SetActive(profile.hybridLocomotion || profile.allowContinuousMove);
+            continuousMoveProvider.SetActive(profile.hybridLocomotion);
 
-        // 2. Input mode
-        if (handTrackingLeft != null) handTrackingLeft.SetActive(profile.useHandTracking);
-        if (handTrackingRight != null) handTrackingRight.SetActive(profile.useHandTracking);
-
+        // 2. Input mode (Strictly Controllers)
         if (controllerLeft != null) controllerLeft.SetActive(profile.useController);
         if (controllerRight != null) controllerRight.SetActive(profile.useController);
 
@@ -85,8 +93,8 @@ public class XRRigConfigurator : MonoBehaviour
         TelemetryManager.Instance?.LogEvent("ui_mode_change", new
         {
             uiMode = profile.useDiegeticWristUI ? "diegetic" : "fixed_hud",
-            locomotion = profile.teleportOnly ? "teleport" : (profile.hybridLocomotion ? "hybrid" : "continuous"),
-            input = profile.useHandTracking ? "hand" : "controller",
+            locomotion = profile.hybridLocomotion ? "hybrid" : "teleport",
+            input = "controller",
             comfortActive = profile.enableComfortVignette
         });
     }

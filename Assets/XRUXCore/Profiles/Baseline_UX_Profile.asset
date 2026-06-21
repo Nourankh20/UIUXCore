@@ -19,12 +19,14 @@ MonoBehaviour:
   snapAngleThreshold: 45
   hybridLocomotion: 0
   teleportOnly: 1
+  allowContinuousMove: 0
   useHaptics: 0
   useAudioFeedback: 0
   useVisualGlow: 0
   feedbackIntensity: 0.3
   enableComfortVignette: 0
+  defaultVignetteIntensity: 0.5
   useDiegeticWristUI: 0
   useFixedHUD: 1
-  useHandTracking: 1
-  useController: 0
+  useHandTracking: 0
+  useController: 1
