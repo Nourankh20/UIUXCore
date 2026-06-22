@@ -10,20 +10,19 @@ public class TombTaskSlot : MonoBehaviour
 {
     [Header("Task Validation")]
     [Tooltip("The required Unity tag for the object to complete this specific slot.")]
-    public string requiredTag = "Necklace";
+    public string requiredTag = "Pottery";
 
     [Tooltip("The step number this item represents in the order (0 = Necklace, 1 = Cat, 2 = Dagger, 3 = Pot).")]
     public int requiredOrderIndex = 0;
 
     [Header("Baseline Settings")]
     [Tooltip("How close an item must be dropped to lock in place when sockets are disabled.")]
-    public float baselineDropDistance = 0.5f;
+    public float baselineDropDistance = 0.6f;
 
     private XRSocketInteractor _socket;
     private bool _isTaskCompleted = false;
     private bool _isOptimizedMode = true;
 
-    // Track listeners to clean them up properly on scene exit
     private List<XRGrabInteractable> _trackedBaselineInteractables = new List<XRGrabInteractable>();
 
     private void Start()
@@ -33,7 +32,6 @@ public class TombTaskSlot : MonoBehaviour
 
         if (_isOptimizedMode)
         {
-            // OPTIMIZED MODE: Keep socket active and keep hover meshes visible
             if (_socket != null)
             {
                 _socket.enabled = true;
@@ -42,32 +40,24 @@ public class TombTaskSlot : MonoBehaviour
         }
         else
         {
-            // BASELINE MODE: Completely disable the socket component to stop auto-snapping
             if (_socket != null)
             {
                 _socket.enabled = false;
             }
 
-            // Find all potential puzzle items to track manual drop placement attempts
-            string[] puzzleTags = { "Necklace", "Cat", "Dagger", "Pot" };
-            foreach (string t in puzzleTags)
+            XRGrabInteractable[] allInteractables = FindObjectsByType<XRGrabInteractable>(FindObjectsSortMode.None);
+            foreach (var interactable in allInteractables)
             {
-                GameObject[] items = GameObject.FindGameObjectsWithTag(t);
-                foreach (GameObject itemObj in items)
-                {
-                    if (itemObj.TryGetComponent<XRGrabInteractable>(out var interactable))
-                    {
-                        _trackedBaselineInteractables.Add(interactable);
-                        interactable.selectExited.AddListener(OnBaselineItemReleased);
-                    }
-                }
+                _trackedBaselineInteractables.Add(interactable);
+                interactable.selectExited.AddListener(OnBaselineItemReleased);
             }
+
+            Debug.Log($"[TombTaskSlot-{gameObject.name}] Baseline setup complete. Listening to {_trackedBaselineInteractables.Count} interactables in scene.");
         }
     }
 
     private void OnDestroy()
     {
-        // Clean up listeners to prevent memory leaks
         foreach (var interactable in _trackedBaselineInteractables)
         {
             if (interactable != null)
@@ -77,10 +67,6 @@ public class TombTaskSlot : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// OPTIMIZED PATHWAY: Called automatically via your XR Socket Interactor's 
-    /// UI/Inspector 'On Select Entered' dynamic event assignment.
-    /// </summary>
     public void TryPlaceItem(SelectEnterEventArgs args)
     {
         if (_isTaskCompleted || !_isOptimizedMode) return;
@@ -89,55 +75,80 @@ public class TombTaskSlot : MonoBehaviour
         ProcessItemPlacement(placedObject, isBaselineDrop: false);
     }
 
-    /// <summary>
-    /// BASELINE PATHWAY: Triggered manually when any key object is released in space.
-    /// </summary>
     private void OnBaselineItemReleased(SelectExitEventArgs args)
     {
         if (_isTaskCompleted) return;
 
         GameObject releasedObject = args.interactableObject.transform.gameObject;
-
-        // Calculate physical proximity to this specific slot coordinate
         float distance = Vector3.Distance(releasedObject.transform.position, transform.position);
 
-        // If it wasn't dropped near this slot, disregard completely
-        if (distance > baselineDropDistance) return;
+        // check if this is the target item intended for this slot position
+        if (releasedObject.CompareTag(requiredTag))
+        {
+            Debug.Log($"[TombTaskSlot-{gameObject.name}] Target item '{releasedObject.name}' dropped at distance: {distance:F2}m (Allowed Threshold: {baselineDropDistance}m).");
+
+            // CRITICAL ERROR LOG: Correct item dropped, but misses physical baseline proximity parameters
+            if (distance > baselineDropDistance)
+            {
+                Debug.LogWarning($"[TombTaskSlot-{gameObject.name}] Distance Error! Target item dropped outside completion target radius.");
+
+                // 1. Log to the TutorialManager tracking step runtime error counts
+                TutorialManager.Instance?.LogStepError();
+
+                // 2. Transmit discrete distance error data object payload packet to MongoDB server collection
+                TelemetryManager.Instance?.LogEvent("tomb_baseline_distance_error", new
+                {
+                    itemTag = requiredTag,
+                    measuredDistance = distance,
+                    thresholdMax = baselineDropDistance,
+                    targetSlotIndex = requiredOrderIndex
+                });
+                return;
+            }
+        }
+        else
+        {
+            // If it's a completely unrelated object dropped completely outside range, ignore it safely
+            if (distance > baselineDropDistance) return;
+        }
 
         ProcessItemPlacement(releasedObject, isBaselineDrop: true);
     }
 
-    /// <summary>
-    /// Core logic engine that handles order checks, tags, telemetry, and feedback
-    /// </summary>
     private void ProcessItemPlacement(GameObject placedObject, bool isBaselineDrop)
     {
-        // 1. STAGE ORDER CHECK
         if (TutorialManager.Instance != null)
         {
             int currentActiveStep = TutorialManager.Instance.currentTaskIndex;
 
             if (requiredOrderIndex != currentActiveStep)
             {
-                Debug.LogWarning($"[TombTaskSlot] Out of order! Required: {requiredOrderIndex}, Active: {currentActiveStep}.");
+                if (placedObject.CompareTag(requiredTag))
+                {
+                    Debug.LogWarning($"[TombTaskSlot-{gameObject.name}] Out of order! Slot expects step {requiredOrderIndex}, but TutorialManager is active on step {currentActiveStep}.");
+
+                    // CRITICAL ERROR LOG: Item matches this slot, but the user attempted placement out of order sequence
+                    TutorialManager.Instance.LogStepError();
+                }
+
                 RejectItem(placedObject);
                 return;
             }
         }
 
-        // 2. TAG VALIDATION
         if (placedObject.CompareTag(requiredTag))
         {
             CompleteSlotTask(placedObject.transform.position);
 
             if (isBaselineDrop)
             {
-                // Force a manual position lock since the socket engine is turned off
                 StartCoroutine(BaselineHardLockRoutine(placedObject, transform));
             }
         }
         else
         {
+            // CRITICAL ERROR LOG: Wrong item intentionally dropped directly into this slot's zone boundaries
+            TutorialManager.Instance?.LogStepError();
             RejectItem(placedObject);
         }
     }
@@ -145,8 +156,8 @@ public class TombTaskSlot : MonoBehaviour
     private void CompleteSlotTask(Vector3 snapPosition)
     {
         _isTaskCompleted = true;
+        Debug.Log($"[TombTaskSlot-{gameObject.name}] Task verified! Successfully matched tag '{requiredTag}' for step index {requiredOrderIndex}.");
 
-        // Sound only plays in optimized conditions
         if (_isOptimizedMode)
         {
             FeedbackManager.Instance?.PlaySnapSuccess(snapPosition);
@@ -175,24 +186,21 @@ public class TombTaskSlot : MonoBehaviour
             {
                 attemptedTag = placedObject.tag,
                 expectedTag = requiredTag,
-                activeSequenceIndex = requiredOrderIndex
+                activeSequenceIndex = TutorialManager.Instance != null ? TutorialManager.Instance.currentTaskIndex : requiredOrderIndex
             });
         }
     }
 
     private IEnumerator BaselineHardLockRoutine(GameObject item, Transform socketTarget)
     {
-        // Match the layout coordinates of the socket anchor point
         Vector3 finalPos = socketTarget.position;
         Quaternion finalRot = socketTarget.rotation;
 
-        // Strip interactivity so the user cannot pull it back out of the layout sequence
         if (item.TryGetComponent<XRGrabInteractable>(out var interactable))
             Destroy(interactable);
 
         yield return null;
 
-        // Lock physics state completely
         if (item.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.isKinematic = true;

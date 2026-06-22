@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -8,30 +9,39 @@ using UnityEngine.Networking;
 /// <summary>
 /// Singleton. Routes discrete events to /api/events and batches 60 Hz
 /// head-tracking frames to /api/highfreq/batch on the Vercel middleware.
-///
-/// Drop this on the [XRUXCore] persistent GameObject.
-/// Fill in apiBaseUrl and apiKey in the Inspector before each build.
 /// </summary>
 public class TelemetryManager : MonoBehaviour
 {
     public static TelemetryManager Instance;
+
+    [Serializable]
+    public class TrackedObjectInfo
+    {
+        public Transform target;
+        public string customId;
+    }
 
     // ── Inspector config ─────────────────────────────────────────────────────
     [Header("Middleware")]
     [Tooltip("Your Vercel deployment URL, e.g. https://xruxcore.vercel.app/")]
     [SerializeField] private string apiBaseUrl = "https://middleware-smoky.vercel.app/";
 
-    [Tooltip("Must match the API_KEY environment variable set in Vercel. " +
-             "Leave empty to skip auth (local dev only).")]
+    [Tooltip("Must match the API_KEY environment variable set in Vercel. Leave empty for local dev.")]
     [SerializeField] private string apiKey = "";
 
+    [Header("Manual Unity Inputs (Overrides Auto-Generation)")]
+    [Tooltip("Type the Participant ID directly here or link it to a UI Input Field.")]
+    public string unityParticipantId = "";
+
+    [Tooltip("Type a custom Session ID here. If left empty, falls back to SessionManager.")]
+    public string unitySessionId = "";
+
     [Header("High-Frequency Capture")]
-    [SerializeField] private List<Transform> trackedObjects = new List<Transform>();
+    [SerializeField] private List<TrackedObjectInfo> trackedObjects = new List<TrackedObjectInfo>();
     [Tooltip("Head tracking capture rate in Hz. 60 is the target.")]
     [SerializeField] private float highFreqHz = 60f;
 
-    [Tooltip("How often (seconds) to flush the high-freq buffer to the server. " +
-             "2 seconds = ~120 frames per batch.")]
+    [Tooltip("How often (seconds) to flush the high-freq buffer to the server.")]
     [SerializeField] private float flushInterval = 2f;
 
     // ── Private state ─────────────────────────────────────────────────────────
@@ -39,7 +49,6 @@ public class TelemetryManager : MonoBehaviour
     private float _nextFlushTime;
     private readonly List<HighFreqFrame> _highFreqBuffer = new();
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
     void Awake()
     {
         if (Instance != null) { Destroy(gameObject); return; }
@@ -55,17 +64,14 @@ public class TelemetryManager : MonoBehaviour
 
     void Update()
     {
-        // Capture high-freq frames locally
         if (Time.time >= _nextHighFreqTime)
         {
             _nextHighFreqTime = Time.time + (1f / highFreqHz);
             CaptureHighFreqFrame();
         }
 
-        // Flush buffer to server on interval
         if (Time.time >= _nextFlushTime)
         {
-            _nextFlushTime = Time.time + flushInterval;
             _nextFlushTime = Time.time + flushInterval;
             FlushHighFreqBuffer();
         }
@@ -73,19 +79,78 @@ public class TelemetryManager : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        // Best-effort flush on quit so we don't lose the last few seconds
         FlushHighFreqBuffer();
     }
 
-    // ── Public API — called by all room managers ──────────────────────────────
+    // ── Public UI Input Setters ──────────────────────────────────────────────
 
     /// <summary>
-    /// Log any named discrete event. Fires immediately (not batched).
+    /// Call this from a Unity UI / TMPro Input Field (On End Edit or On Value Changed)
     /// </summary>
+    public void SetParticipantIdFromUI(string inputId)
+    {
+        unityParticipantId = inputId;
+    }
+
+    /// <summary>
+    /// Call this from a Unity UI / TMPro Input Field to manually override session strings
+    /// </summary>
+    public void SetSessionIdFromUI(string inputId)
+    {
+        unitySessionId = inputId;
+    }
+
+    // ── ID Resolver Helpers ──────────────────────────────────────────────────
+
+    private string GetActiveSessionId()
+    {
+        if (!string.IsNullOrEmpty(unitySessionId)) return unitySessionId;
+        return SessionManager.Instance != null ? SessionManager.Instance.sessionId : "unknown_session";
+    }
+
+    private int GetActiveParticipantId()
+    {
+        if (!string.IsNullOrEmpty(unityParticipantId))
+        {
+            if (int.TryParse(unityParticipantId, out int parsedId))
+                return parsedId;
+        }
+        return SessionManager.Instance != null ? SessionManager.Instance.participantId : -1;
+    }
+
+    // ── Dynamic Management APIs ────────────────────────────────────
+
+    public void AddTrackedObject(Transform target, string customId = "")
+    {
+        if (target == null) return;
+
+        int index = trackedObjects.FindIndex(x => x != null && x.target == target);
+        if (index == -1)
+        {
+            trackedObjects.Add(new TrackedObjectInfo
+            {
+                target = target,
+                customId = string.IsNullOrEmpty(customId) ? target.name : customId
+            });
+        }
+    }
+
+    public void RemoveTrackedObject(Transform target)
+    {
+        if (target == null) return;
+        trackedObjects.RemoveAll(x => x == null || x.target == target);
+    }
+
+    public void ClearTrackedObjects()
+    {
+        trackedObjects.Clear();
+    }
+
+    // ── Enriched Public Log APIs ──────────────────────────────────────────────
+
     public void LogEvent(string eventType, object data)
     {
-        // Guard check against missing SessionManager
-        string sid = SessionManager.Instance != null ? SessionManager.Instance.sessionId : "unknown_session";
+        string sid = GetActiveSessionId();
         string phase = SessionManager.Instance != null ? SessionManager.Instance.currentPhase : "unknown_phase";
 
         var payload = new EventPayload
@@ -94,22 +159,22 @@ public class TelemetryManager : MonoBehaviour
             timestamp = Time.time,
             phase = phase,
             event_type = eventType,
-            data = JsonUtility.ToJson(data)   // nested as JSON string
+            data = BuildEnrichedContextJson(data)
         };
+
         StartCoroutine(Post("api/events", JsonUtility.ToJson(payload)));
     }
 
-    /// <summary>
-    /// Sends the NASA-TLX survey structure directly to its own dedicated collection.
-    /// </summary>
     public void LogNasaTlxToEndpoint(string phaseEvaluated, float mental, float physical, float temporal, float performance, float effort, float frustration)
     {
         var payload = new NasaTlxPayload
         {
-            session_id = SessionManager.Instance != null ? SessionManager.Instance.sessionId : "unknown_session",
-            participant_id = SessionManager.Instance != null ? SessionManager.Instance.participantId : -1,
+            session_id = GetActiveSessionId(),
+            participant_id = GetActiveParticipantId(),
             timestamp = Time.time,
             phase_evaluated = phaseEvaluated,
+            is_optimized = SessionManager.Instance != null && SessionManager.Instance.IsOptimized,
+            profile_name = (SessionManager.Instance != null && SessionManager.Instance.activeProfile != null) ? SessionManager.Instance.activeProfile.profileName : "None",
             mental_demand = mental,
             physical_demand = physical,
             temporal_demand = temporal,
@@ -118,16 +183,9 @@ public class TelemetryManager : MonoBehaviour
             frustration = frustration
         };
 
-        // We change the path here. Based on how your middleware handles 'api/events' -> 'Events' 
-        // and 'api/highfreq/batch' -> 'HighFreq_Logs', hitting 'api/surveys' or 'api/survey'
-        // tells MongoDB to dynamically spin up a brand new collection folder on your dashboard.
         StartCoroutine(Post("api/surveys", JsonUtility.ToJson(payload)));
     }
 
-    /// <summary>
-    /// Convenience: log snap success/fail with precision metrics.
-    /// Called by SnapInteractor.OnReleased().
-    /// </summary>
     public void LogSnapEvent(bool success, float distErr, float angErr, string objectId)
     {
         LogEvent(success ? "snap_success" : "snap_fail", new
@@ -141,56 +199,124 @@ public class TelemetryManager : MonoBehaviour
     // ── High-frequency capture ────────────────────────────────────────────────
     private void CaptureHighFreqFrame()
     {
-        // Guard check if SessionManager is missing to avoid errors during rapid frame updates
-        if (SessionManager.Instance == null) return;
+        string sid = GetActiveSessionId();
 
         // 1. Log Head Tracking
         if (Camera.main != null)
         {
-            AddFrameToBuffer(Camera.main.transform, "head");
+            AddFrameToBuffer(Camera.main.transform, "head", sid);
         }
 
         // 2. Log Interactable Movements
-        foreach (var obj in trackedObjects)
+        for (int i = trackedObjects.Count - 1; i >= 0; i--)
         {
-            if (obj != null)
+            var tracked = trackedObjects[i];
+            if (tracked != null && tracked.target != null)
             {
-                AddFrameToBuffer(obj, obj.name);
+                string finalId = string.IsNullOrEmpty(tracked.customId) ? tracked.target.name : tracked.customId;
+                AddFrameToBuffer(tracked.target, finalId, sid);
+            }
+            else
+            {
+                trackedObjects.RemoveAt(i);
             }
         }
     }
 
-    // Helper to keep the code clean
-    private void AddFrameToBuffer(Transform t, string id)
+    private void AddFrameToBuffer(Transform t, string id, string sid)
     {
+        Vector3 pos = t.position;
+        Vector3 rot = t.rotation.eulerAngles;
+
         _highFreqBuffer.Add(new HighFreqFrame
         {
-            session_id = SessionManager.Instance.sessionId,
+            session_id = sid,
             timestamp = Time.time,
             event_type = id == "head" ? "head_tracking" : "object_tracking",
             object_id = id,
-            pos_x = t.position.x,
-            pos_y = t.position.y,
-            pos_z = t.position.z,
-            pitch = t.rotation.eulerAngles.x,
-            yaw = t.rotation.eulerAngles.y,
-            roll = t.rotation.eulerAngles.z
+            pos_x = SafeFloat(pos.x),
+            pos_y = SafeFloat(pos.y),
+            pos_z = SafeFloat(pos.z),
+            pitch = SafeFloat(rot.x),
+            yaw = SafeFloat(rot.y),
+            roll = SafeFloat(rot.z)
         });
+    }
+
+    private float SafeFloat(float value)
+    {
+        return (float.IsNaN(value) || float.IsInfinity(value)) ? 0f : value;
     }
 
     private void FlushHighFreqBuffer()
     {
         if (_highFreqBuffer.Count == 0) return;
 
-        // Snapshot and clear before the coroutine runs to avoid double-sending
         var frames = new List<HighFreqFrame>(_highFreqBuffer);
         _highFreqBuffer.Clear();
 
         StartCoroutine(PostBatch("api/highfreq/batch", frames));
     }
 
-    // ── HTTP helpers ──────────────────────────────────────────────────────────
+    // ── Metadata Merging Reflection Engine ────────────────────────────────────
+    private string BuildEnrichedContextJson(object customFields)
+    {
+        int pid = GetActiveParticipantId();
+        bool isOpt = SessionManager.Instance != null && SessionManager.Instance.IsOptimized;
+        string profName = (SessionManager.Instance != null && SessionManager.Instance.activeProfile != null)
+            ? SessionManager.Instance.activeProfile.profileName : "None";
+        string room = SessionManager.Instance != null ? SessionManager.Instance.currentPhase : "unknown_room";
 
+        List<string> jsonEntries = new List<string>
+        {
+            $"\"participant_id\":{pid}",
+            $"\"is_optimized\":{(isOpt ? "true" : "false")}",
+            $"\"profile_name\":\"{profName.Replace("\"", "\\\"")}\"",
+            $"\"room_phase\":\"{room.Replace("\"", "\\\"")}\""
+        };
+
+        if (customFields != null)
+        {
+            Type objType = customFields.GetType();
+
+            PropertyInfo[] props = objType.GetProperties();
+            foreach (PropertyInfo prop in props)
+            {
+                try
+                {
+                    object value = prop.GetValue(customFields, null);
+                    jsonEntries.Add($"\"{prop.Name}\":{FormatValue(value)}");
+                }
+                catch { }
+            }
+
+            FieldInfo[] fields = objType.GetFields();
+            foreach (FieldInfo field in fields)
+            {
+                try
+                {
+                    object value = field.GetValue(customFields);
+                    jsonEntries.Add($"\"{field.Name}\":{FormatValue(value)}");
+                }
+                catch { }
+            }
+        }
+
+        return "{" + string.Join(",", jsonEntries) + "}";
+    }
+
+    private string FormatValue(object val)
+    {
+        if (val == null) return "null";
+        if (val is string || val is char) return $"\"{val.ToString().Replace("\"", "\\\"")}\"";
+        if (val is bool b) return b ? "true" : "false";
+        if (val is int || val is float || val is double || val is long || val is decimal)
+            return SafeFloat(Convert.ToSingle(val)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        return $"\"{val.ToString().Replace("\"", "\\\"")}\"";
+    }
+
+    // ── HTTP helpers ──────────────────────────────────────────────────────────
     private IEnumerator Post(string path, string json)
     {
         string url = apiBaseUrl.TrimEnd('/') + "/" + path;
@@ -211,7 +337,6 @@ public class TelemetryManager : MonoBehaviour
 
     private IEnumerator PostBatch(string path, List<HighFreqFrame> frames)
     {
-        // Manually build the JSON array — JsonUtility doesn't serialize List<T> at root
         var sb = new StringBuilder("[");
         for (int i = 0; i < frames.Count; i++)
         {
@@ -235,11 +360,8 @@ public class TelemetryManager : MonoBehaviour
         if (req.result == UnityWebRequest.Result.Success)
             Debug.Log($"[TelemetryManager] Middleware reachable. Response: {req.downloadHandler.text}");
         else
-            Debug.LogError($"[TelemetryManager] Cannot reach middleware at {url}. " +
-                            $"Check apiBaseUrl and network. Error: {req.error}");
+            Debug.LogError($"[TelemetryManager] Cannot reach middleware at {url}. Error: {req.error}");
     }
-
-    // ── Serializable types (JsonUtility requires [Serializable]) ──────────────
 
     [Serializable]
     private class EventPayload
@@ -248,23 +370,20 @@ public class TelemetryManager : MonoBehaviour
         public float timestamp;
         public string phase;
         public string event_type;
-        public string data;       // JSON-encoded string of the data object
+        public string data;
     }
 
     [Serializable]
-    private class HighFreqFrame
+    private struct HighFreqFrame
     {
         public string session_id;
         public float timestamp;
-        public string event_type; // "head_tracking" or "object_tracking"
-        public string object_id;  // Added this: "head", "shovel_01", etc.
+        public string event_type;
+        public string object_id;
         public float pos_x, pos_y, pos_z;
         public float pitch, yaw, roll;
     }
 
-    /// <summary>
-    /// Structured representation for NASA-TLX endpoints or clean serialization logs
-    /// </summary>
     [Serializable]
     private class NasaTlxPayload
     {
@@ -272,6 +391,8 @@ public class TelemetryManager : MonoBehaviour
         public int participant_id;
         public float timestamp;
         public string phase_evaluated;
+        public bool is_optimized;
+        public string profile_name;
         public float mental_demand;
         public float physical_demand;
         public float temporal_demand;

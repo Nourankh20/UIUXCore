@@ -18,6 +18,7 @@
     "com.unity.xr.meta-openxr": "2.5.0",
     "com.unity.xr.mock-hmd": "1.5.0-exp.3",
     "com.unity.xr.openxr": "1.14.3",
+    "com.whinarn.unitymeshsimplifier": "https://github.com/Whinarn/UnityMeshSimplifier.git",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

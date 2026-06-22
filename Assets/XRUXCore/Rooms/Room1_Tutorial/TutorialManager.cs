@@ -77,14 +77,25 @@ public class TutorialManager : MonoBehaviour
 
     public void AdvanceTask()
     {
-        if (!_isReady || _isCompleted) return;
+        if (!_isReady || _isCompleted)
+        {
+            Debug.LogWarning($"[TutorialManager] AdvanceTask ignored. Ready: {_isReady}, Already Completed: {_isCompleted}");
+            return;
+        }
 
         CompleteTaskLogging();
+        Debug.Log($"[TutorialManager] Successfully completed task index: {_currentTaskIndex} ('{tasks[_currentTaskIndex].taskName}').");
+
         _currentTaskIndex++;
 
-        if (_currentTaskIndex < tasks.Count) BeginTask(_currentTaskIndex);
+        // Check if there are more tasks left in the Inspector list
+        if (_currentTaskIndex < tasks.Count)
+        {
+            BeginTask(_currentTaskIndex);
+        }
         else
         {
+            Debug.Log($"[TutorialManager] All tasks completed! Final reached index: {_currentTaskIndex}. Inspector tasks count: {tasks.Count}. Launching survey...");
             _isCompleted = true;
             OnTutorialComplete();
         }
@@ -96,19 +107,16 @@ public class TutorialManager : MonoBehaviour
         _stepStartTime = Time.time;
         _stepErrors = 0;
 
-        // Check the active profile state
         bool isOptimized = SessionManager.Instance?.activeProfile?.isOptimized ?? false;
 
         if (instructionUI != null)
         {
             if (isOptimized)
             {
-                // Optimized mode: Show one step at a time
                 instructionUI.ShowStep(tasks[index].instructionText);
             }
             else
             {
-                // Baseline mode: Show the full mission board
                 instructionUI.ShowAllSteps(tasks, index);
             }
         }
@@ -138,8 +146,18 @@ public class TutorialManager : MonoBehaviour
             duration = SessionManager.Instance?.GetPhaseDuration()
         });
 
-        if (nasaTlxCanvas != null) nasaTlxCanvas.SetActive(true);
-        else TransitionToNextRoom(); // Fallback
+        if (nasaTlxCanvas != null)
+        {
+            Debug.Log("[TutorialManager] Activating NASA-TLX Canvas at its native design layout coordinates.");
+
+            // Just activate the object—retaining its default scene coordinates, rotation, and scale intact.
+            nasaTlxCanvas.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("[TutorialManager] CRITICAL: nasaTlxCanvas reference field is EMPTY in the Unity Inspector! Instantly skipping to fallback scene transfer.");
+            TransitionToNextRoom();
+        }
     }
 
     /// <summary>
@@ -151,7 +169,6 @@ public class TutorialManager : MonoBehaviour
 
         if (SceneTransitionManager.Instance != null)
         {
-            // Logic: 0 = LowCog, 1 = HighCog
             if (_roomIndex == 1)
             {
                 SceneTransitionManager.Instance.LoadHighCog();
